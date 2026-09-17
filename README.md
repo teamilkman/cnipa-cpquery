@@ -73,6 +73,7 @@ uv run --with DrissionPage --with img2pdf --with pypdf \
 
 - PNG 图片流经 img2pdf 无损嵌入 A4(不重编码);本身是 PDF 的决定书直通写盘,页数用 pypdf 解析(清单条目数不可信)
 - 校验:PDF 头 + pypdf 页数与文件名后缀一致 + A4 尺寸;缺页会明确报告
+- 同一日期/类型出现重复显示名称时，文件名会按 API 返回顺序追加 `_2`、`_3` 等序号，保留每条独立案卷记录，避免覆盖
 
 ## 已内置处理的坑(详见 [references/api-endpoints.md](references/api-endpoints.md))
 

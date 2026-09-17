@@ -338,6 +338,18 @@ def run_case(pat_raw, root, only_keys=None):
     case_dir = os.path.join(root, pat)
     os.makedirs(case_dir, exist_ok=True)
     dl_log = []
+    used_out_bases = set()
+
+    def unique_out_base(prefix, name):
+        """保留同名条目，避免同一日期/名称的重复文书互相覆盖。"""
+        base = os.path.join(case_dir, safe(f'{prefix}_{name}'))
+        candidate = base
+        index = 2
+        while candidate in used_out_bases:
+            candidate = f'{base}_{index}'
+            index += 1
+        used_out_bases.add(candidate)
+        return candidate
 
     def dl_all(items, prefix, flt=None):
         for it in items:
@@ -348,7 +360,7 @@ def run_case(pat_raw, root, only_keys=None):
             rid, ds, wjdm = ad.get('rid'), ad.get('ds'), ad.get('wenjiandm')
             if not (rid and ds and wjdm):
                 continue  # 无rid的父节点(如无效案号)跳过
-            out_base = os.path.join(case_dir, safe(f'{prefix}_{name}'))
+            out_base = unique_out_base(prefix, name)
             t0 = time.time()
             saved = download_doc_fast(tab, pat, rid, ds, wjdm, out_base)
             if saved:
@@ -417,7 +429,7 @@ def run_case(pat_raw, root, only_keys=None):
             if not d.get('rid'):
                 print(f'  [{prefix}] {name}: 无rid,跳过')
                 continue
-            out_base = os.path.join(case_dir, safe(f'{prefix}_{name}'))
+            out_base = unique_out_base(prefix, name)
             saved = download_doc_fast(tab, pat, d['rid'], d.get('ds', 'SCJD_TZS'),
                                       d.get('wenjiandm', '100000'), out_base,
                                       anjianbh=anjian)

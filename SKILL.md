@@ -74,6 +74,7 @@ uv run --with DrissionPage --with img2pdf --with pypdf python <skill>/scripts/cp
 ## 输出规范
 
 - 每份文书一个PDF: `<申请号>/<文件类型>_<日期>_<名称>_N页.pdf`(如 `通知书_2011-06-08  第一次审查意见通知书_3页.pdf`)
+  - 若同一菜单返回多条相同显示名称的文书，按API返回顺序追加 `_2`、`_3` 等本地序号，避免不同案卷记录互相覆盖；该序号不是CNIPA原始名称的一部分
   - PNG图片流用 **img2pdf** 无损嵌入A4(210×297mm,不重编码);整份即PDF的文书(无效/复审决定书)直接写原文件
   - 运行须带 `--with img2pdf --with pypdf`(pypdf用于数直通PDF的真实页数——清单只算1条而决定书实为多页,PDF对象流已压缩不可正则计数)。img2pdf不可用时自动降级Pillow有损合并,仅异常路径
   - 重试致页数变化时自动清理旧`_N页.pdf`避免并存
