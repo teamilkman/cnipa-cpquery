@@ -15,7 +15,7 @@
   3. 每条目: fetch-file-infos 拿签名页清单 -> 并发 fetch-file 取页
      (base64回传Python侧落盘)
 
-输出: 每份文书合并为单个PDF `{out_base}_N页.pdf`
+输出: 每份文书合并为单个PDF `{out_base}_N页.pdf`;有日期的文书文件名以日期开头
   - PNG图片流: img2pdf无损嵌入A4(210x297mm,不重编码)
   - 整份即PDF的文书(决定书等): 直通写盘
   运行依赖: DrissionPage + img2pdf + pypdf(数直通PDF真实页数)
@@ -261,6 +261,15 @@ def safe(s):
     return re.sub(r'[\\/:*?"<>|]+', '_', s).strip()
 
 
+def format_output_stem(prefix, name):
+    """将带日期的文书整理为“日期_类型_名称”，无日期时保留原结构。"""
+    match = re.match(r'^(\d{4}-\d{2}-\d{2})\s+(.+?)\s*$', name)
+    if match:
+        date, title = match.groups()
+        return f'{date}_{prefix}_{title.strip()}'
+    return f'{prefix}_{name}'
+
+
 def compute_check_digit(num12):
     """中国申请号校验位:12位本体按权重2-9,2-5加权求和 mod 11(10→X)。"""
     s = sum(int(d) * w for d, w in zip(num12, [2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5]))
@@ -342,7 +351,7 @@ def run_case(pat_raw, root, only_keys=None):
 
     def unique_out_base(prefix, name):
         """保留同名条目，避免同一日期/名称的重复文书互相覆盖。"""
-        base = os.path.join(case_dir, safe(f'{prefix}_{name}'))
+        base = os.path.join(case_dir, safe(format_output_stem(prefix, name)))
         candidate = base
         index = 2
         while candidate in used_out_bases:
